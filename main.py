@@ -17,8 +17,8 @@ logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'fallback_secret_key_for_development')
 
-app.config['SESSION_COOKIE_SECURE'] = True
-app.config['REMEMBER_COOKIE_SECURE'] = True
+#app.config['SESSION_COOKIE_SECURE'] = True
+#app.config['REMEMBER_COOKIE_SECURE'] = True
 
 #app.secret_key = 'your_secret_key'
 
@@ -67,6 +67,9 @@ def login():
         user = users.get(username)
         if user and user['password'] == password:
             # Login logic here
+            user_obj = User()
+            user_obj.id = username
+            login_user(user_obj)
             return redirect(url_for('protected'))
         else:
             flash('Invalid username or password.')
