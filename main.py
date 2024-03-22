@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
 import os
 import numpy as np
@@ -35,8 +35,15 @@ def user_loader(username):
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        users[request.form['username']] = {'password': request.form['password']}
-        return redirect(url_for('login'))
+        username = request.form['username']
+        password = request.form['password']
+        if username in users:
+            flash('Username already exists.')
+        else:
+            # Register logic here
+            users[username] = {'password': password}
+            flash('Successfully registered. Please log in.')
+            return redirect(url_for('login'))
     return render_template('register.html')
 
 
@@ -45,12 +52,14 @@ def register():
 def login():
     if request.method == 'POST':
         username = request.form['username']
-        if username in users and request.form['password'] == users[username]['password']:
-            user = User()
-            user.id = username
-            login_user(user)
+        password = request.form['password']
+        # Assuming 'users' is your user storage
+        user = users.get(username)
+        if user and user['password'] == password:
+            # Login logic here
             return redirect(url_for('protected'))
-
+        else:
+            flash('Invalid username or password.')
     return render_template('login.html')
 
 @app.route('/protected')
@@ -86,6 +95,10 @@ def submit_feedback():
     print(rating)
     # Process the rating here (e.g., store it in a database)
     return jsonify({'status': 'success'})
+
+@app.route('/')
+def welcome():
+    return render_template('welcome.html')
 
 
 if __name__ == '__main__':

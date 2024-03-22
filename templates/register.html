@@ -6,6 +6,15 @@
 </head>
 <body>
     <h2>Register</h2>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class="flash-messages">
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
     <form action="/register" method="post">
         <div>
             <label for="username">Username:</label>
@@ -17,5 +26,8 @@
         </div>
         <button type="submit">Register</button>
     </form>
+    <div>
+        <p>Already have an account? <a href="/login">Login here</a>.</p>
+    </div>
 </body>
 </html>
