@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Protected Page</title>
+    <script>
+        function generateJoke() {
+            // Assuming you have an endpoint to get the joke
+            fetch('/joke')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('jokeArea').innerHTML = data.joke;
+                    // Enable feedback buttons after joke is generated
+                    let feedbackButtons = document.querySelectorAll('.feedback-button');
+                    feedbackButtons.forEach(button => {
+                        button.disabled = false;
+                    });
+                    // Disable joke generation button
+                    document.getElementById('generateJokeButton').disabled = true;
+                });
+        }
+
+        function giveFeedback(score) {
+            console.log("Feedback given:", score);
+            // Here, you'd typically send the feedback score back to your server
+            // For demonstration, we're just logging it to the console
+
+            // Disable feedback buttons
+            let feedbackButtons = document.querySelectorAll('.feedback-button');
+            feedbackButtons.forEach(button => {
+                button.disabled = true;
+            });
+            // Enable joke generation button
+            document.getElementById('generateJokeButton').disabled = false;
+        }
+    </script>
+</head>
+<body>
+    <h2>Welcome to the Joke Generator!</h2>
+    <button id="generateJokeButton" onclick="generateJoke()">Generate Joke</button>
+    <p id="jokeArea">Your joke will appear here.</p>
+    <div>
+        Rate the joke:
+        <button class="feedback-button" disabled onclick="giveFeedback(1)">1</button>
+        <button class="feedback-button" disabled onclick="giveFeedback(2)">2</button>
+        <button class="feedback-button" disabled onclick="giveFeedback(3)">3</button>
+        <button class="feedback-button" disabled onclick="giveFeedback(4)">4</button>
+        <button class="feedback-button" disabled onclick="giveFeedback(5)">5</button>
+    </div>
+</body>
+</html>
