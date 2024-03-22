@@ -15,7 +15,9 @@ import logging
 logging.basicConfig(level=logging.DEBUG) 
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'fallback_secret_key_for_development')
+
+#app.secret_key = 'your_secret_key'
 
 # This is a placeholder for user storage. Replace with database logic in a real app.
 users = {'user1': {'password': 'password123'}}
