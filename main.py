@@ -7,7 +7,7 @@ import numpy as np
 
 app = Flask(__name__)
 
-Rec_sys = RecommenderSystem("data/jester_items.csv", "/data/jester_ratings.csv")
+Rec_sys = RecommenderSystem("data/jester_items.csv", "data/jester_ratings.csv")
 rand_sys = RandomRecommender("data/jester_items.csv")
 openai_sys = OpenAIRecommender("data/jester_items.csv")
 
