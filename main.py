@@ -17,6 +17,9 @@ logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'fallback_secret_key_for_development')
 
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['REMEMBER_COOKIE_SECURE'] = True
+
 #app.secret_key = 'your_secret_key'
 
 # This is a placeholder for user storage. Replace with database logic in a real app.
@@ -24,6 +27,8 @@ users = {'user1': {'password': 'password123'}}
 
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+
 
 class User(UserMixin):
     pass
