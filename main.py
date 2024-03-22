@@ -21,7 +21,7 @@ def index():
     new_user[40] = -9.9
     new_user[50] = -5
     joke = rand_sys.get_N_user_recommendations(new_user, 1)
-    return jsonify({str(joke.jokeText)})
+    return jsonify({joke.iloc[0]})
 
 
 if __name__ == '__main__':
