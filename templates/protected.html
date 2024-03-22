@@ -4,12 +4,16 @@
     <meta charset="UTF-8">
     <title>Protected Page</title>
     <script>
+
+
+
         function generateJoke() {
             // Assuming you have an endpoint to get the joke
             fetch('/joke')
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('jokeArea').innerHTML = data.joke;
+                    window.currentJokeID = data.jokeID; // Store jokeID globally
                     // Enable feedback buttons after joke is generated
                     let feedbackButtons = document.querySelectorAll('.feedback-button');
                     feedbackButtons.forEach(button => {
@@ -21,18 +25,39 @@
         }
 
         function giveFeedback(score) {
-            console.log("Feedback given:", score);
-            // Here, you'd typically send the feedback score back to your server
-            // For demonstration, we're just logging it to the console
+            const feedback = {
+                rating: score,
+                jokeID: window.currentJokeID, // Example: You need to set this variable appropriately
+            };
 
+            fetch('/submit_feedback', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(feedback),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                // Additional actions after feedback submission
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+
+            // UI updates as before
             // Disable feedback buttons
             let feedbackButtons = document.querySelectorAll('.feedback-button');
             feedbackButtons.forEach(button => {
                 button.disabled = true;
             });
             // Enable joke generation button
-            document.getElementById('generateJokeButton').disabled = false;
+            document.getElementById('generateJokeButton').disabled = false;            
         }
+
+
+        
     </script>
 </head>
 <body>

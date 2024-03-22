@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import os
 import numpy as np
 
@@ -7,12 +7,34 @@ from src.openai_azure_recommender import OpenAIRecommender
 from src.recommender_system import RecommenderSystem, RandomRecommender
 import numpy as np
 
+from peewee import (
+    Model, IntegerField, FloatField,
+    TextField, IntegrityError, BooleanField
+)
+from playhouse.shortcuts import model_to_dict
+from playhouse.db_url import connect
+
 Rec_sys = RecommenderSystem("data/jester_items.csv", "data/jester_ratings.csv")
 rand_sys = RandomRecommender("data/jester_items.csv")
 openai_sys = OpenAIRecommender("data/jester_items.csv")
 
 import logging
 logging.basicConfig(level=logging.DEBUG) 
+
+DB = connect(os.environ.get('DATABASE_URL') or 'sqlite:///ratings.db')
+
+class Rating(Model):
+    userID = TextField()
+    jokeID = IntegerField()
+    rating = IntegerField()
+
+    class Meta:
+        database = DB
+
+
+DB.create_tables([Rating], safe=True)
+
+
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'fallback_secret_key_for_development')
@@ -98,16 +120,20 @@ def joke():
     new_user[50] = -5
     joke = rand_sys.get_N_user_recommendations(new_user, 1)
     print(joke)
-    return jsonify({'joke' : joke.iloc[0]})
+    print(joke.index[0])
+    return jsonify({'joke': joke.iloc[0], 'jokeID': int(joke.index[0])})
 
 @app.route('/submit_feedback', methods=['POST'])
 @login_required
 def submit_feedback():
     data = request.get_json()
     rating = data['rating']
-    print(rating)
-    # Process the rating here (e.g., store it in a database)
-    return jsonify({'status': 'success'})
+    jokeID = data['jokeID']
+    userID = current_user.get_id()  # Assuming your User model or Flask-Login setup provides this
+
+    new_rating = Rating(userID=userID, jokeID=jokeID, rating=rating)
+    new_rating.save()
+    return jsonify({'status': 'success', 'message': 'Feedback received'})
 
 @app.route('/')
 def welcome():
