@@ -11,7 +11,7 @@ from scipy.sparse import csr_matrix, save_npz
 
 from sklearn.metrics.pairwise import cosine_similarity
 
-from IPython.display import Image
+#from IPython.display import Image
 
 class RandomRecommender():
     def __init__(self, pathjokes : str) -> None:
