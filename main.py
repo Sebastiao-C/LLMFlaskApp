@@ -11,6 +11,9 @@ Rec_sys = RecommenderSystem("data/jester_items.csv", "data/jester_ratings.csv")
 rand_sys = RandomRecommender("data/jester_items.csv")
 openai_sys = OpenAIRecommender("data/jester_items.csv")
 
+import logging
+logging.basicConfig(level=logging.DEBUG) 
+
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
