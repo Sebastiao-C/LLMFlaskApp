@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ratings DataFrame</title>
+    <style>
+        .data {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .data, .data th, .data td {
+            border: 1px solid black;
+        }
+        .data th, .data td {
+            padding: 8px;
+            text-align: left;
+        }
+        .data tr:nth-child(even) {background-color: #f2f2f2;}
+    </style>
+</head>
+<body>
+    <h2>Ratings DataFrame</h2>
+    {{ ratings_html|safe }}  <!-- Safely render the DataFrame HTML here -->
+</body>
+</html>

@@ -14,6 +14,11 @@ from peewee import (
 from playhouse.shortcuts import model_to_dict
 from playhouse.db_url import connect
 
+import pandas as pd
+
+from random import random
+
+
 Rec_sys = RecommenderSystem("data/jester_items.csv", "data/jester_ratings.csv")
 rand_sys = RandomRecommender("data/jester_items.csv")
 openai_sys = OpenAIRecommender("data/jester_items.csv")
@@ -27,6 +32,7 @@ class Rating(Model):
     userID = TextField()
     jokeID = IntegerField()
     rating = IntegerField()
+    system = TextField()
 
     class Meta:
         database = DB
@@ -40,7 +46,7 @@ app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'fallback_secret_key_for_development')
 
 #app.config['SESSION_COOKIE_SECURE'] = True
-#app.config['REMEMBER_COOKIE_SECURE'] = True
+#app.config['REMEMBER_COOKIE_SECURE'] = True 
 
 #app.secret_key = 'your_secret_key'
 
@@ -108,20 +114,66 @@ def logout():
     logout_user()
     return 'Logged out'
 
+
+@app.route('/show_ratings')
+def show_ratings():
+    ratings_df = get_ratings_dataframe()  # Assuming this function returns your DataFrame
+    ratings_html = ratings_df.to_html(classes='data', index=False)  # Generate HTML
+    return render_template('dataframe.html', ratings_html=ratings_html)
+
+def get_ratings_dataframe():
+    # Assuming Rating is your Peewee model for the ratings table
+    query = Rating.select()
+    # Convert the query to a list of dictionaries
+    ratings_list = list(query.dicts()) 
+    # Convert the list of dictionaries to a DataFrame
+    ratings_df = pd.DataFrame(ratings_list)
+    return ratings_df #jsonify(ratings_df.to_json(orient='records'))
+
+# Example usage
+#ratings_df = get_ratings_dataframe()
+#print(ratings_df)
+
+
 @app.route('/joke')
 @login_required
 def joke():
-    # Assuming your existing joke generation logic here
-    new_user = np.zeros(140)
-    new_user[5] = 4
-    new_user[20] = 3
-    new_user[30] = -6
-    new_user[40] = -9.9
-    new_user[50] = -5
-    joke = rand_sys.get_N_user_recommendations(new_user, 1)
-    print(joke)
-    print(joke.index[0])
-    return jsonify({'joke': joke.iloc[0], 'jokeID': int(joke.index[0])})
+    new_user = np.zeros(140)  # Example user profile
+    df = get_ratings_dataframe()
+    userID = current_user.get_id()
+    #print(df)
+    #print(df)
+    #print(df[df['userID'] == userID])
+    if df.shape[0] == 0:
+        joke = rand_sys.get_N_user_recommendations(new_user, 1)
+        system = 'random'
+    else:
+        for row_ in df[df['userID'] == userID].iterrows():
+            row = row_[1]
+            new_user[row['jokeID']] = row['rating']
+
+        if df[df['userID'] == userID].shape[0] < 5:
+            joke = rand_sys.get_N_user_recommendations(new_user, 1)
+            system = 'random'
+        else:
+            #print("HERE!")
+            num = random()
+            if num < 0.8:
+                joke = Rec_sys.get_N_user_recommendations(new_user, 1)
+                system = 'recommender'
+            #elif num < 0.8:
+            #    joke = openai_sys.get_N_user_recommendations(new_user, 1)   
+            #    system = 'openai'
+            else:
+                joke = rand_sys.get_N_user_recommendations(new_user, 1)
+                system = 'random'
+
+    #print(joke)
+    #print(joke.index[0])
+    return jsonify({'joke': joke.iloc[0], 'jokeID': int(joke.index[0]), 'system' : system})
+
+ 
+
 
 @app.route('/submit_feedback', methods=['POST'])
 @login_required
@@ -129,15 +181,23 @@ def submit_feedback():
     data = request.get_json()
     rating = data['rating']
     jokeID = data['jokeID']
+    system = data['system']
     userID = current_user.get_id()  # Assuming your User model or Flask-Login setup provides this
 
-    new_rating = Rating(userID=userID, jokeID=jokeID, rating=rating)
+    new_rating = Rating(userID=userID, jokeID=jokeID, rating=rating, system=system)
     new_rating.save()
     return jsonify({'status': 'success', 'message': 'Feedback received'})
 
 @app.route('/')
 def welcome():
     return render_template('welcome.html')
+
+@app.route('/list-db-contents/')#, methods=['POST'])
+def list_db_contents():
+    return jsonify([
+        model_to_dict(obs) for obs in Rating.select()
+    ])
+
 
 
 if __name__ == '__main__':
